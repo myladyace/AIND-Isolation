@@ -14,7 +14,18 @@ def custom_score(game, player):
     """Calculate the heuristic value of a game state from the point of view
     of the given player.
 
-    This should be the best heuristic function for your project submission.
+    The evaluation function is the difference in # of legal moves between two
+    players. When they have the same number of available moves, the one whose
+    current position is closer to the center(using manhattan distance) would 
+    have more advantages.
+    
+    So if two players have the same # of available moves and the same distance
+    from the center, return 0
+    If current player has more(less) available moves or closer(further) to the
+    center when both of them are at the same distance from the center, 
+    return positive(negative). 
+    If the player has won(lost) the game, return inf(-inf).
+    
 
     Note: this function should be called from within a Player instance as
     `self.score()` -- you should not need to call this function directly.
@@ -34,13 +45,46 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
+    
+    #Return inf(-inf) if the player have won(lost)
+    if game.is_winner(player):
+        return float('inf')
+    elif game.is_loser(player):
+        return float('-inf')
+    
+    #Calculate the number of available moves for player and its opponent
+    player_legal_moves = len(game.get_legal_moves(player))
+    opponent_legal_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    
+    #Evaluation function is the difference between two players
+    evaluation = float(player_legal_moves - opponent_legal_moves)
+    
+    #Return the evaluation value if it is not 0
+    if evaluation:
+        return evaluation
+    
+    #If evaluation==0, the one who is closer to the center would have advantanges
+    else:
+        player_y, player_x = game.get_player_location(player)
+        opponent_y, opponent_x = game.get_player_location(game.get_opponent(player))
+        center_y, center_x = int(game.height//2), int(game.width//2)
+        player_distance = abs(player_y - center_y) + abs(player_x - center_x)
+        opponent_distance = abs(opponent_y - center_y) + abs(opponent_x - center_x)
+        
+        #Scale it by dividing the difference by the board height(width)
+        #So the position effect should not be as critical as the diffrences of legal moves
+        return float(player_distance-opponent_distance)/game.height
+    
+    
     raise NotImplementedError
 
 
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
     of the given player.
+    
+    Here the evaluation function is simply the difference in # of legal moves 
+    between two players.
 
     Note: this function should be called from within a Player instance as
     `self.score()` -- you should not need to call this function directly.
@@ -60,13 +104,28 @@ def custom_score_2(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
+    #Return inf(-inf) if the player have won(lost)
+    if game.is_winner(player):
+        return float('inf')
+    elif game.is_loser(player):
+        return float('-inf')
+    
+    #Calculate the number of available moves for player and its opponent
+    player_legal_moves = len(game.get_legal_moves(player))
+    opponent_legal_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    
+    #Return difference of legal moves between two players
+    return float(player_legal_moves - opponent_legal_moves)
     raise NotImplementedError
 
 
 def custom_score_3(game, player):
     """Calculate the heuristic value of a game state from the point of view
     of the given player.
+    
+    Here the heuristic is more aggressive while we try to block the opponent
+    more. The evaluation function is the # of legal moves of player minus the
+    # of its opponent legal moves multiplied by two.
 
     Note: this function should be called from within a Player instance as
     `self.score()` -- you should not need to call this function directly.
@@ -86,7 +145,18 @@ def custom_score_3(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
+    #Return inf(-inf) if the player have won(lost)
+    if game.is_winner(player):
+        return float('inf')
+    elif game.is_loser(player):
+        return float('-inf')
+    
+    #Calculate the number of available moves for player and its opponent
+    player_legal_moves = len(game.get_legal_moves(player))
+    opponent_legal_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    
+    #Return difference of legal moves between two players
+    return float(player_legal_moves - 2*opponent_legal_moves)
     raise NotImplementedError
 
 
