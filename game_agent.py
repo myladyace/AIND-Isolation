@@ -282,7 +282,103 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        # TODO: finish this function!
+        #Initialize the move, if there is no available move, will return (-1,-1)
+        output_move = (-1,-1)
+        
+        #Initialize the evaluation score
+        output_score = float('-inf')
+        
+        #Get possible moves for current player
+        possible_moves = game.get_legal_moves()
+        
+        #Current layer is a maximizing layer
+        for move in possible_moves:
+            #Evaluate this move by calling helper function
+            score = self.helper(game.forecast_move(move),depth-1)
+            
+            #Already find a winning move
+            if score == float('inf'):
+                return move
+            
+            #Update the score and move if current move is best so far
+            if score>output_score:
+                output_score=score
+                output_move = move
+                   
+        return output_move
+
+        raise NotImplementedError
+    
+    def helper(self, game, depth, maximize = False):
+        """Evaluate the score of current move
+        
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        depth : int
+            Depth is an integer representing the maximum number of plies to
+            search in the game tree before aborting
+            
+        maximize : bool
+            This value indicates whether the current search layer is a
+            maximizing layer (True) or a minimizing layer (False)
+
+        Returns
+        -------
+        float
+            The score of current move
+
+        Notes
+        -----
+            (1) You MUST use the `self.score()` method for board evaluation
+                to pass the project tests; you cannot call any other evaluation
+                function directly.
+
+            (2) If you use any helper functions (e.g., as shown in the AIMA
+                pseudocode) then you must copy the timer check into the top of
+                each helper function or else your agent will timeout during
+                testing.
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+        
+        if depth==0:
+            return self.score(game, self)
+
+        #Initialize the evaluation score
+        output_score = float('-inf') if maximize else float('inf')
+        
+        #Get possible moves for current player
+        possible_moves = game.get_legal_moves()
+        
+        #if current layer is maximizing layer:
+        if maximize:
+            for move in possible_moves:
+                #Evaluate this move by calling helper function
+                score = self.helper(game.forecast_move(move),depth-1,not maximize)
+            
+                #Already find a winning move
+                if score == float('inf'):
+                    return score
+            
+                #Update the score and move if current move is best so far
+                if score>output_score:
+                    output_score=score
+            return output_score
+        
+        #Minimizing Layer
+        else:
+            for move in possible_moves:
+                score = self.helper(game.forecast_move(move),depth-1,not maximize)
+                if score == float('-inf'):
+                    return score
+                if score<output_score:
+                    output_score=score
+            return output_score
+
         raise NotImplementedError
 
 
@@ -327,7 +423,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         # TODO: finish this function!
         raise NotImplementedError
 
-    def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
+    def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf"), maximize=True):
         """Implement depth-limited minimax search with alpha-beta pruning as
         described in the lectures.
 
@@ -354,12 +450,17 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         beta : float
             Beta limits the upper bound of search on maximizing layers
+        maximize : bool
+            This value indicates whether the current search layer is a
+            maximizing layer (True) or a minimizing layer (False)
 
         Returns
         -------
         (int, int)
             The board coordinates of the best move found in the current search;
             (-1, -1) if there are no legal moves
+        float
+            The score of current move
 
         Notes
         -----
