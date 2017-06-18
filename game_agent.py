@@ -427,10 +427,10 @@ class AlphaBetaPlayer(IsolationPlayer):
         try:
             # The try/except block will automatically catch the exception
             # raised when the timer is about to expire.
-            for depth in range(1,game.height*game.width):
-                best_score, best_move = self.alphabeta(game, depth)
-                if best_score==float('inf'):
-                    return best_move
+            max_depth = len(game.get_blank_spaces())
+            for depth in range(1,max_depth):
+                best_move = self.alphabeta(game, depth)
+            return best_move
         except SearchTimeout:
             pass  # Handle any actions required after timeout as needed
 
@@ -508,21 +508,87 @@ class AlphaBetaPlayer(IsolationPlayer):
         #Get possible moves for current player
         possible_moves = game.get_legal_moves()
         
+        for move in possible_moves:
+            #Evaluate this move by calling helper function
+            score = self.alphabeta(game.forecast_move(move),depth-1,alpha, beta)
+            
+            #In a maximizing layer, if the score of next move is greater than upper bound
+            #we can simply cut this branch
+            if score >= beta:
+                    return move
+                
+            #Update the score and move if current move is best so far
+            if score>output_score:
+                output_move=move
+                
+            #Update the alpha value
+            alpha = max(alpha, output_score)
+       
+        return output_move
+
+        raise NotImplementedError
+        
+        
+    def helper(self, game, depth, alpha, beta, maximize = False):
+        """Evaluate the score of current move
+        
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+
+        depth : int
+            Depth is an integer representing the maximum number of plies to
+            search in the game tree before aborting
+            
+        maximize : bool
+            This value indicates whether the current search layer is a
+            maximizing layer (True) or a minimizing layer (False)
+
+        Returns
+        -------
+        float
+            The score of current move
+
+        Notes
+        -----
+            (1) You MUST use the `self.score()` method for board evaluation
+                to pass the project tests; you cannot call any other evaluation
+                function directly.
+
+            (2) If you use any helper functions (e.g., as shown in the AIMA
+                pseudocode) then you must copy the timer check into the top of
+                each helper function or else your agent will timeout during
+                testing.
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+        
+        if depth==0:
+            return self.score(game, self)
+
+
+        #Initialize the evaluation score
+        output_score = float('-inf') if maximize else float('inf')
+        
+        #Get possible moves for current player
+        possible_moves = game.get_legal_moves()
+        
         #if current layer is maximizing layer:
         if maximize:
             for move in possible_moves:
                 #Evaluate this move by calling helper function
-                score = self.alphabeta(game.forecast_move(move),depth-1,alpha, beta, not maximize)
+                score = self.helper(game.forecast_move(move),depth-1,alpha, beta, not maximize)
             
                 #In a maximizing layer, if the score of next move is greater than upper bound
                 #we can simply cut this branch
                 if score >= beta:
-                    return score, move
+                    return score
                 
                 #Update the score and move if current move is best so far
                 if score>output_score:
                     output_score=score
-                    output_move=move
                 
                 #Update the alpha value
                 alpha = max(alpha, output_score)
@@ -530,14 +596,13 @@ class AlphaBetaPlayer(IsolationPlayer):
         #Minimizing Layer
         else:
             for move in possible_moves:
-                score = self.alphabeta(game.forecast_move(move),depth-1,alpha, beta, not maximize)
+                score = self.helper(game.forecast_move(move),depth-1,alpha, beta, not maximize)
                 if score <= alpha:
                     return score
                 if score<output_score:
                     output_score=score
-                    output_move=move
         
-        return output_score, output_move
+        return output_score
 
         raise NotImplementedError
     
