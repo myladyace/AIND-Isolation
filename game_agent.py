@@ -302,7 +302,7 @@ class MinimaxPlayer(IsolationPlayer):
             
             #Update the score and move if current move is best so far
             if score>output_score:
-                output_score=score
+                output_score = score
                 output_move = move
                    
         return output_move
@@ -510,16 +510,17 @@ class AlphaBetaPlayer(IsolationPlayer):
         
         for move in possible_moves:
             #Evaluate this move by calling helper function
-            score = self.alphabeta(game.forecast_move(move),depth-1,alpha, beta)
+            score = self.helper(game.forecast_move(move),depth-1,alpha, beta)
             
             #In a maximizing layer, if the score of next move is greater than upper bound
             #we can simply cut this branch
             if score >= beta:
-                    return move
+                return move
                 
             #Update the score and move if current move is best so far
             if score>output_score:
-                output_move=move
+                output_move = move
+                output_score = score
                 
             #Update the alpha value
             alpha = max(alpha, output_score)
@@ -588,7 +589,7 @@ class AlphaBetaPlayer(IsolationPlayer):
                 
                 #Update the score and move if current move is best so far
                 if score>output_score:
-                    output_score=score
+                    output_score = score
                 
                 #Update the alpha value
                 alpha = max(alpha, output_score)
@@ -600,7 +601,8 @@ class AlphaBetaPlayer(IsolationPlayer):
                 if score <= alpha:
                     return score
                 if score<output_score:
-                    output_score=score
+                    output_score = score
+                beta = min(beta, output_score)
         
         return output_score
 
