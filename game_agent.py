@@ -237,7 +237,7 @@ class MinimaxPlayer(IsolationPlayer):
         except SearchTimeout:
             pass  # Handle any actions required after timeout as needed
 
-        # Return the best move from the last completed search iteration
+        # Return the best move if timeout
         return best_move
 
     def minimax(self, game, depth):
@@ -367,7 +367,6 @@ class MinimaxPlayer(IsolationPlayer):
                 #Update the score and move if current move is best so far
                 if score>output_score:
                     output_score=score
-            return output_score
         
         #Minimizing Layer
         else:
@@ -377,7 +376,8 @@ class MinimaxPlayer(IsolationPlayer):
                     return score
                 if score<output_score:
                     output_score=score
-            return output_score
+        
+        return output_score
 
         raise NotImplementedError
 
@@ -420,7 +420,23 @@ class AlphaBetaPlayer(IsolationPlayer):
         """
         self.time_left = time_left
 
-        # TODO: finish this function!
+        # Initialize the best move so that this function returns something
+        # in case the search fails due to timeout
+        best_move = (-1, -1)
+
+        try:
+            # The try/except block will automatically catch the exception
+            # raised when the timer is about to expire.
+            for depth in range(1,game.height*game.width):
+                best_score, best_move = self.alphabeta(game, depth)
+                if best_score==float('inf'):
+                    return best_move
+        except SearchTimeout:
+            pass  # Handle any actions required after timeout as needed
+
+        # Return the best move from the last completed search iteration
+        return best_move
+    
         raise NotImplementedError
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf"), maximize=True):
@@ -450,17 +466,20 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         beta : float
             Beta limits the upper bound of search on maximizing layers
+            
         maximize : bool
             This value indicates whether the current search layer is a
             maximizing layer (True) or a minimizing layer (False)
 
+
         Returns
         -------
+        float
+            The score of current move
+            
         (int, int)
             The board coordinates of the best move found in the current search;
             (-1, -1) if there are no legal moves
-        float
-            The score of current move
 
         Notes
         -----
@@ -473,8 +492,53 @@ class AlphaBetaPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
+        
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
+        
+        if depth==0:
+            return self.score(game, self)
+        
+        #Initialize the move, if there is no available move, will return (-1,-1)
+        output_move = (-1,-1)
 
-        # TODO: finish this function!
+        #Initialize the evaluation score
+        output_score = float('-inf') if maximize else float('inf')
+        
+        #Get possible moves for current player
+        possible_moves = game.get_legal_moves()
+        
+        #if current layer is maximizing layer:
+        if maximize:
+            for move in possible_moves:
+                #Evaluate this move by calling helper function
+                score = self.alphabeta(game.forecast_move(move),depth-1,alpha, beta, not maximize)
+            
+                #In a maximizing layer, if the score of next move is greater than upper bound
+                #we can simply cut this branch
+                if score >= beta:
+                    return score, move
+                
+                #Update the score and move if current move is best so far
+                if score>output_score:
+                    output_score=score
+                    output_move=move
+                
+                #Update the alpha value
+                alpha = max(alpha, output_score)
+        
+        #Minimizing Layer
+        else:
+            for move in possible_moves:
+                score = self.alphabeta(game.forecast_move(move),depth-1,alpha, beta, not maximize)
+                if score <= alpha:
+                    return score
+                if score<output_score:
+                    output_score=score
+                    output_move=move
+        
+        return output_score, output_move
+
         raise NotImplementedError
+    
+    
