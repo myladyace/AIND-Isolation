@@ -14,8 +14,8 @@ def custom_score(game, player):
     """Calculate the heuristic value of a game state from the point of view
     of the given player.
 
-    The evaluation function is the difference in # of legal moves between two
-    players. When they have the same number of available moves, the one whose
+    The evaluation function is the # of legal moves of player minus the
+    # of its opponent legal moves multiplied by two. When it is 0, the one whose
     current position is closer to the center(using manhattan distance) would 
     have more advantages.
     
@@ -57,7 +57,7 @@ def custom_score(game, player):
     opponent_legal_moves = len(game.get_legal_moves(game.get_opponent(player)))
     
     #Evaluation function is the difference between two players
-    evaluation = float(player_legal_moves - opponent_legal_moves)
+    evaluation = float(player_legal_moves - 2*opponent_legal_moves)
     
     #Return the evaluation value if it is not 0
     if evaluation:
